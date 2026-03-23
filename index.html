@@ -363,5 +363,76 @@ if(a)a.classList.add('active');
 })();
 </script>
 
+<script>
+(function(){
+  const WEBHOOK_URL = 'https://hook.us2.make.com/14z8ltwlbvtaggk535wxlkehf4puiwz6';
+  const COLOR = '#FF5C00';
+  const NAME = 'Lukas';
+  const WELCOME = '¡Hola! 👋 Soy Lukas. ¿Buscas idiomas, cursos o chatbots?';
+
+  const btn = document.createElement('button');
+  btn.style = "position:fixed;bottom:20px;right:20px;width:60px;height:60px;border-radius:50%;background:"+COLOR+";border:none;color:#fff;font-size:20px;cursor:pointer;z-index:9999";
+  btn.innerHTML = "💬";
+
+  const chat = document.createElement('div');
+  chat.style = "position:fixed;bottom:90px;right:20px;width:320px;height:420px;background:#111;border-radius:15px;display:none;flex-direction:column;z-index:9999;overflow:hidden";
+
+  chat.innerHTML = `
+    <div style="background:${COLOR};padding:10px;color:#fff;font-weight:bold">Lukas</div>
+    <div id="msgs" style="flex:1;padding:10px;overflow:auto;color:#fff;font-size:14px"></div>
+    <input id="input" placeholder="Escribe..." style="border:none;padding:10px;outline:none">
+  `;
+
+  document.body.appendChild(btn);
+  document.body.appendChild(chat);
+
+  let open = false;
+
+  btn.onclick = () => {
+    open = !open;
+    chat.style.display = open ? "flex" : "none";
+    if(open && !chat.dataset.init){
+      addMsg(WELCOME, false);
+      chat.dataset.init = true;
+    }
+  };
+
+  function addMsg(text, user){
+    const msgs = document.getElementById("msgs");
+    const div = document.createElement("div");
+    div.style = "margin:5px 0;text-align:"+(user?"right":"left");
+    div.innerHTML = `<span style="background:${user?COLOR:"#222"};padding:8px 12px;border-radius:10px;display:inline-block">${text}</span>`;
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  async function send(text){
+    addMsg(text,true);
+    try{
+      const res = await fetch(WEBHOOK_URL,{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({message:text})
+      });
+      const data = await res.json();
+      const reply = data.reply || '🤔 ¿Buscas idiomas, cursos o chatbots?';
+      addMsg(reply,false);
+    }catch(e){
+      addMsg('🤔 ¿Buscas idiomas, cursos o chatbots?',false);
+    }
+  }
+
+  document.addEventListener("keypress",e=>{
+    if(e.key==="Enter"){
+      const input = document.getElementById("input");
+      if(input.value.trim()){
+        send(input.value.trim());
+        input.value="";
+      }
+    }
+  });
+
+})();
+</script>
 </body>
 </html>
